@@ -1,5 +1,11 @@
-"""Shared worker infrastructure for Scivly."""
+"""Shared worker utilities and infrastructure for Scivly."""
 
+from .config import (
+    load_default_triage_profile,
+    load_institution_priors,
+    load_lab_priors,
+    load_reference_config,
+)
 from .pipeline import (
     DEFAULT_STATUS_FLOW,
     IdempotencyStore,
@@ -26,4 +32,8 @@ __all__ = [
     "TaskStatus",
     "TaskType",
     "build_task_queue",
+    "load_default_triage_profile",
+    "load_institution_priors",
+    "load_lab_priors",
+    "load_reference_config",
 ]
