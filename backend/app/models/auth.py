@@ -132,6 +132,7 @@ class AuthorWatchlist(Base):
 class NotificationChannel(Base):
     __tablename__ = "notification_channels"
     __table_args__ = (
+        UniqueConstraint("id", "workspace_id", name="uq_notification_channels_id_workspace"),
         CheckConstraint(
             "channel_type IN ('email', 'telegram', 'discord', 'webhook')",
             name="chk_notification_channels_type",

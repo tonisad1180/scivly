@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS notification_channels (
   channel_type TEXT NOT NULL,
   config JSONB NOT NULL DEFAULT '{}'::JSONB,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  CONSTRAINT uq_notification_channels_id_workspace UNIQUE (id, workspace_id),
   CONSTRAINT chk_notification_channels_type CHECK (
     channel_type IN ('email', 'telegram', 'discord', 'webhook')
   )
@@ -237,6 +238,7 @@ CREATE TABLE IF NOT EXISTS digests (
   content JSONB NOT NULL DEFAULT '{}'::JSONB,
   status TEXT NOT NULL DEFAULT 'draft',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_digests_id_workspace UNIQUE (id, workspace_id),
   CONSTRAINT uq_digests_schedule_window UNIQUE (
     workspace_id,
     schedule_id,
@@ -252,14 +254,21 @@ CREATE INDEX IF NOT EXISTS ix_digests_workspace_status_created_at
 
 CREATE TABLE IF NOT EXISTS deliveries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  digest_id UUID NOT NULL REFERENCES digests(id) ON DELETE CASCADE,
-  channel_id UUID NOT NULL REFERENCES notification_channels(id) ON DELETE RESTRICT,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  digest_id UUID NOT NULL,
+  channel_id UUID NOT NULL,
   status TEXT NOT NULL DEFAULT 'queued',
   attempts INTEGER NOT NULL DEFAULT 0,
   last_error TEXT,
   sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT uq_deliveries_digest_channel UNIQUE (digest_id, channel_id),
+  CONSTRAINT fk_deliveries_digest_workspace FOREIGN KEY (digest_id, workspace_id)
+    REFERENCES digests(id, workspace_id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_deliveries_channel_workspace FOREIGN KEY (channel_id, workspace_id)
+    REFERENCES notification_channels(id, workspace_id)
+    ON DELETE RESTRICT,
   CONSTRAINT chk_deliveries_status CHECK (status IN ('queued', 'sent', 'failed')),
   CONSTRAINT chk_deliveries_attempts_nonnegative CHECK (attempts >= 0),
   CONSTRAINT chk_deliveries_sent_at_required CHECK (
@@ -267,8 +276,8 @@ CREATE TABLE IF NOT EXISTS deliveries (
   )
 );
 
-CREATE INDEX IF NOT EXISTS ix_deliveries_status_created_at
-  ON deliveries (status, created_at DESC);
+CREATE INDEX IF NOT EXISTS ix_deliveries_workspace_status_created_at
+  ON deliveries (workspace_id, status, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS chat_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -394,7 +403,7 @@ CREATE TABLE IF NOT EXISTS pipeline_tasks (
   started_at TIMESTAMPTZ,
   completed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT uq_pipeline_tasks_idempotency_key UNIQUE (idempotency_key),
+  CONSTRAINT uq_pipeline_tasks_workspace_idempotency_key UNIQUE (workspace_id, idempotency_key),
   CONSTRAINT chk_pipeline_tasks_type CHECK (
     task_type IN ('sync', 'match', 'fetch', 'parse', 'enrich', 'deliver', 'index')
   ),

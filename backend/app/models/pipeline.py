@@ -13,7 +13,7 @@ from . import Base
 class PipelineTask(Base):
     __tablename__ = "pipeline_tasks"
     __table_args__ = (
-        UniqueConstraint("idempotency_key", name="uq_pipeline_tasks_idempotency_key"),
+        UniqueConstraint("workspace_id", "idempotency_key", name="uq_pipeline_tasks_workspace_idempotency_key"),
         CheckConstraint(
             "task_type IN ('sync', 'match', 'fetch', 'parse', 'enrich', 'deliver', 'index')",
             name="chk_pipeline_tasks_type",

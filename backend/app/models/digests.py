@@ -4,7 +4,7 @@ import datetime as dt
 import uuid
 from typing import Any
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, Index, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, ForeignKeyConstraint, Index, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,6 +35,7 @@ class DigestSchedule(Base):
 class Digest(Base):
     __tablename__ = "digests"
     __table_args__ = (
+        UniqueConstraint("id", "workspace_id", name="uq_digests_id_workspace"),
         UniqueConstraint("workspace_id", "schedule_id", "period_start", "period_end", name="uq_digests_schedule_window"),
         CheckConstraint("status IN ('draft', 'sent', 'failed')", name="chk_digests_status"),
         CheckConstraint("period_end >= period_start", name="chk_digests_period_window"),
@@ -64,23 +65,32 @@ class Delivery(Base):
     __tablename__ = "deliveries"
     __table_args__ = (
         UniqueConstraint("digest_id", "channel_id", name="uq_deliveries_digest_channel"),
+        ForeignKeyConstraint(
+            ["digest_id", "workspace_id"],
+            ["digests.id", "digests.workspace_id"],
+            name="fk_deliveries_digest_workspace",
+            ondelete="CASCADE",
+        ),
+        ForeignKeyConstraint(
+            ["channel_id", "workspace_id"],
+            ["notification_channels.id", "notification_channels.workspace_id"],
+            name="fk_deliveries_channel_workspace",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint("status IN ('queued', 'sent', 'failed')", name="chk_deliveries_status"),
         CheckConstraint("attempts >= 0", name="chk_deliveries_attempts_nonnegative"),
         CheckConstraint("status <> 'sent' OR sent_at IS NOT NULL", name="chk_deliveries_sent_at_required"),
-        Index("ix_deliveries_status_created_at", text("status, created_at DESC")),
+        Index("ix_deliveries_workspace_status_created_at", text("workspace_id, status, created_at DESC")),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
-    digest_id: Mapped[uuid.UUID] = mapped_column(
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("digests.id", ondelete="CASCADE"),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
         nullable=False,
     )
-    channel_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("notification_channels.id", ondelete="RESTRICT"),
-        nullable=False,
-    )
+    digest_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    channel_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     status: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'queued'"))
     attempts: Mapped[int] = mapped_column(nullable=False, server_default=text("0"))
     last_error: Mapped[str | None] = mapped_column(Text)

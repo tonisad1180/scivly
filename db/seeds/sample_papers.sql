@@ -427,6 +427,7 @@ ON CONFLICT (id) DO UPDATE SET
 
 INSERT INTO deliveries (
   id,
+  workspace_id,
   digest_id,
   channel_id,
   status,
@@ -438,6 +439,7 @@ INSERT INTO deliveries (
 VALUES
   (
     '00000000-0000-0000-0000-000000001401',
+    '00000000-0000-0000-0000-000000000201',
     '00000000-0000-0000-0000-000000001301',
     '00000000-0000-0000-0000-000000000501',
     'sent',
@@ -448,6 +450,7 @@ VALUES
   ),
   (
     '00000000-0000-0000-0000-000000001402',
+    '00000000-0000-0000-0000-000000000201',
     '00000000-0000-0000-0000-000000001301',
     '00000000-0000-0000-0000-000000000502',
     'sent',
@@ -457,6 +460,7 @@ VALUES
     '2026-03-07T08:00:00Z'
   )
 ON CONFLICT (id) DO UPDATE SET
+  workspace_id = EXCLUDED.workspace_id,
   digest_id = EXCLUDED.digest_id,
   channel_id = EXCLUDED.channel_id,
   status = EXCLUDED.status,
