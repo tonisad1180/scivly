@@ -159,12 +159,28 @@ install_backend() {
   fi
 
   if [[ -f "${ROOT_DIR}/backend/requirements.txt" ]]; then
-    if ensure_backend_venv && resolve_backend_python; then
-      log "Installing backend Python dependencies in ${BACKEND_VENV_DIR}."
-      (cd "${ROOT_DIR}/backend" && "${BACKEND_PYTHON}" -m pip install -r requirements.txt)
-    else
+    if ! command -v python3 >/dev/null 2>&1; then
       log "Python 3 is not available, skipping backend dependency install."
+      return 0
     fi
+
+    if ensure_backend_venv; then
+      if ! resolve_backend_python; then
+        log "Python 3 is not available, skipping backend dependency install."
+        return 0
+      fi
+      log "Installing backend Python dependencies in ${BACKEND_VENV_DIR}."
+    else
+      BACKEND_PYTHON=""
+      if ! resolve_backend_python; then
+        log "Python 3 is not available, skipping backend dependency install."
+        return 0
+      fi
+      log "Falling back to ${BACKEND_PYTHON} because the backend virtual environment could not be created."
+      log "Installing backend Python dependencies with the fallback Python interpreter."
+    fi
+
+    (cd "${ROOT_DIR}/backend" && "${BACKEND_PYTHON}" -m pip install -r requirements.txt)
     return 0
   fi
 
