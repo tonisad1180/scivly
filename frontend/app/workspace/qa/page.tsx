@@ -25,7 +25,13 @@ function buildAssistantReply(paper: PaperOut, prompt: string) {
     return `The main limitation called out in the mock summary is: ${paper.limitations ?? "the paper did not provide a detailed limitations section."}`;
   }
 
-  return `The paper's core takeaway is: ${paper.one_line_summary} A good follow-up would be to inspect ${paper.key_points[0].toLowerCase()}.`;
+  const followUpTarget = paper.key_points.find((point) => point.trim().length > 0);
+
+  if (!followUpTarget) {
+    return `The paper's core takeaway is: ${paper.one_line_summary} A good follow-up would be to inspect the evaluation details and supporting evidence.`;
+  }
+
+  return `The paper's core takeaway is: ${paper.one_line_summary} A good follow-up would be to inspect ${followUpTarget.toLowerCase()}.`;
 }
 
 export default function WorkspaceQAPage() {

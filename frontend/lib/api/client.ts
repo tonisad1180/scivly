@@ -58,20 +58,26 @@ export function isMockApiEnabled() {
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions<T> = {}) {
   const { authToken, body, headers, query, schema, ...init } = options;
-  const resolvedBody =
-    body &&
+  const isReadableStream =
+    typeof ReadableStream !== "undefined" && body instanceof ReadableStream;
+  const isJsonBody =
+    body !== undefined &&
+    body !== null &&
     typeof body === "object" &&
     !(body instanceof FormData) &&
     !(body instanceof URLSearchParams) &&
     !(body instanceof Blob) &&
-    !(body instanceof ArrayBuffer)
-      ? JSON.stringify(body)
-      : body;
+    !(body instanceof ArrayBuffer) &&
+    !ArrayBuffer.isView(body) &&
+    !isReadableStream;
+  const resolvedBody: BodyInit | undefined = isJsonBody
+    ? JSON.stringify(body)
+    : (body as BodyInit | undefined);
   const response = await fetch(buildUrl(path, query), {
     ...init,
     headers: {
       Accept: "application/json",
-      ...(resolvedBody ? { "Content-Type": "application/json" } : {}),
+      ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
       ...(resolveAuthToken(authToken) ? { Authorization: `Bearer ${resolveAuthToken(authToken)}` } : {}),
       ...headers,
     },
