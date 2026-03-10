@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Send, Sparkles } from "lucide-react";
 
 import type { ChatMessageOut, PaperOut } from "@/lib/api/types";
 import { listPapers } from "@/lib/api/papers";
+import { hoursAgo } from "@/lib/mock/time";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,8 +36,9 @@ export default function WorkspaceQAPage() {
   const papers = papersQuery.data?.items ?? [];
   const [selectedPaperId, setSelectedPaperId] = useState("");
   const [draft, setDraft] = useState("");
-  const [isResponding, startTransition] = useTransition();
   const [messagesByPaper, setMessagesByPaper] = useState<Record<string, ChatMessageOut[]>>({});
+  const [pendingPaperIds, setPendingPaperIds] = useState<Record<string, boolean>>({});
+  const replyTimeoutIdsRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!papers.length) {
@@ -54,13 +56,20 @@ export default function WorkspaceQAPage() {
                 role: "assistant",
                 content:
                   "I can explain score breakdowns, summarize the paper, or suggest what to read next.",
-                created_at: "2026-03-10T02:02:00Z",
+                created_at: hoursAgo(2),
                 model: "gpt-4o-mini (mock)",
               },
             ],
           }
     );
   }, [papers]);
+
+  useEffect(() => {
+    return () => {
+      replyTimeoutIdsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      replyTimeoutIdsRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedPaperId || messagesByPaper[selectedPaperId]) {
@@ -84,6 +93,7 @@ export default function WorkspaceQAPage() {
 
   const selectedPaper = papers.find((paper) => paper.id === selectedPaperId);
   const messages = messagesByPaper[selectedPaperId] ?? [];
+  const isCurrentPaperPending = Boolean(selectedPaperId && pendingPaperIds[selectedPaperId]);
   const suggestedPrompts = [
     "Why did this paper score so high?",
     "What is the main limitation?",
@@ -91,7 +101,7 @@ export default function WorkspaceQAPage() {
   ];
 
   function sendMessage() {
-    if (!draft.trim() || !selectedPaper) {
+    if (!draft.trim() || !selectedPaper || pendingPaperIds[selectedPaper.id]) {
       return;
     }
 
@@ -111,24 +121,33 @@ export default function WorkspaceQAPage() {
       ],
     }));
     setDraft("");
+    setPendingPaperIds((current) => ({
+      ...current,
+      [selectedPaper.id]: true,
+    }));
 
-    window.setTimeout(() => {
-      startTransition(() => {
-        setMessagesByPaper((current) => ({
-          ...current,
-          [selectedPaper.id]: [
-            ...(current[selectedPaper.id] ?? []),
-            {
-              id: `assistant-${crypto.randomUUID()}`,
-              role: "assistant",
-              content: buildAssistantReply(selectedPaper, submitted),
-              created_at: new Date().toISOString(),
-              model: "gpt-4o-mini (mock)",
-            },
-          ],
-        }));
-      });
+    const timeoutId = window.setTimeout(() => {
+      setMessagesByPaper((current) => ({
+        ...current,
+        [selectedPaper.id]: [
+          ...(current[selectedPaper.id] ?? []),
+          {
+            id: `assistant-${crypto.randomUUID()}`,
+            role: "assistant",
+            content: buildAssistantReply(selectedPaper, submitted),
+            created_at: new Date().toISOString(),
+            model: "gpt-4o-mini (mock)",
+          },
+        ],
+      }));
+      setPendingPaperIds((current) => ({
+        ...current,
+        [selectedPaper.id]: false,
+      }));
+      replyTimeoutIdsRef.current = replyTimeoutIdsRef.current.filter((id) => id !== timeoutId);
     }, 450);
+
+    replyTimeoutIdsRef.current.push(timeoutId);
   }
 
   return (
@@ -200,9 +219,9 @@ export default function WorkspaceQAPage() {
                 }}
               />
               <div className="flex justify-end">
-                <Button onClick={sendMessage} disabled={!draft.trim() || isResponding}>
+                <Button onClick={sendMessage} disabled={!draft.trim() || isCurrentPaperPending}>
                   <Send />
-                  {isResponding ? "Responding..." : "Send"}
+                  {isCurrentPaperPending ? "Responding..." : "Send"}
                 </Button>
               </div>
             </div>

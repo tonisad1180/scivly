@@ -38,18 +38,33 @@ export default function WorkspaceInterestsPage() {
   const [authorName, setAuthorName] = useState("");
   const [authorNotes, setAuthorNotes] = useState("");
   const [channelDrafts, setChannelDrafts] = useState<Record<string, string>>({});
+  const [dirtyChannelIds, setDirtyChannelIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!channelsQuery.data) {
       return;
     }
 
-    setChannelDrafts(
-      Object.fromEntries(
-        channelsQuery.data.map((channel) => [channel.id, channel.config.target ?? ""])
-      )
-    );
-  }, [channelsQuery.data]);
+    setChannelDrafts((current) => {
+      const next = { ...current };
+      let changed = false;
+
+      channelsQuery.data.forEach((channel) => {
+        if (dirtyChannelIds[channel.id]) {
+          return;
+        }
+
+        const target = channel.config.target ?? "";
+
+        if (next[channel.id] !== target) {
+          next[channel.id] = target;
+          changed = true;
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [channelsQuery.data, dirtyChannelIds]);
 
   const createProfileMutation = useMutation({
     mutationFn: createProfile,
@@ -97,6 +112,14 @@ export default function WorkspaceInterestsPage() {
   const updateChannelMutation = useMutation({
     mutationFn: updateNotificationChannel,
     onSuccess: (channel) => {
+      setChannelDrafts((previous) => ({
+        ...previous,
+        [channel.id]: channel.config.target ?? "",
+      }));
+      setDirtyChannelIds((previous) => ({
+        ...previous,
+        [channel.id]: false,
+      }));
       queryClient.setQueryData(
         ["channels"],
         (previous: Awaited<ReturnType<typeof getNotificationChannels>> | undefined) =>
@@ -331,12 +354,16 @@ export default function WorkspaceInterestsPage() {
                   <div className="mt-4 grid gap-3">
                     <Input
                       value={channelDrafts[channel.id] ?? ""}
-                      onChange={(event) =>
+                      onChange={(event) => {
                         setChannelDrafts((previous) => ({
                           ...previous,
                           [channel.id]: event.target.value,
-                        }))
-                      }
+                        }));
+                        setDirtyChannelIds((previous) => ({
+                          ...previous,
+                          [channel.id]: true,
+                        }));
+                      }}
                     />
                     <div className="flex flex-wrap gap-2">
                       <Button

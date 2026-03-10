@@ -1,6 +1,7 @@
 import type { DigestOut, DigestScheduleOut } from "@/lib/api/types";
 import { mockPapers } from "@/lib/mock/papers";
 import { DEMO_WORKSPACE_ID } from "@/lib/mock/profiles";
+import { daysAgo, getNextRunAt, hoursAgo } from "@/lib/mock/time";
 
 const paperById = Object.fromEntries(mockPapers.map((paper) => [paper.id, paper]));
 
@@ -13,17 +14,21 @@ export const mockDigestSchedule: DigestScheduleOut = {
   channel_labels: ["Morning brief", "Research queue webhook"],
   is_active: true,
   cadence_label: "Weekdays at 09:00",
-  created_at: "2026-03-01T02:00:00Z",
-  next_run_at: "2026-03-11T01:00:00Z",
+  created_at: daysAgo(10),
+  next_run_at: getNextRunAt({
+    timeZone: "Asia/Shanghai",
+    hour: 9,
+    weekdays: [1, 2, 3, 4, 5],
+  }),
 };
 
 export const mockDigests: DigestOut[] = [
   {
-    id: "digest-2026-03-10-morning",
+    id: "digest-latest-morning",
     workspace_id: DEMO_WORKSPACE_ID,
     schedule_id: mockDigestSchedule.id,
-    period_start: "2026-03-09T00:00:00Z",
-    period_end: "2026-03-10T00:00:00Z",
+    period_start: daysAgo(2),
+    period_end: daysAgo(1),
     paper_ids: [
       "paper-lab-notebook-agents",
       "paper-toolsandbox-r",
@@ -63,15 +68,15 @@ export const mockDigests: DigestOut[] = [
       ],
     },
     status: "sent",
-    created_at: "2026-03-10T00:10:00Z",
-    sent_at: "2026-03-10T01:00:00Z",
+    created_at: hoursAgo(32),
+    sent_at: hoursAgo(31),
   },
   {
-    id: "digest-2026-03-08-weekend",
+    id: "digest-prior-weekend",
     workspace_id: DEMO_WORKSPACE_ID,
     schedule_id: mockDigestSchedule.id,
-    period_start: "2026-03-06T00:00:00Z",
-    period_end: "2026-03-08T00:00:00Z",
+    period_start: daysAgo(5),
+    period_end: daysAgo(3),
     paper_ids: [
       "paper-dataset-cards-cite-back",
       "paper-chain-of-verification-figures",
@@ -111,7 +116,7 @@ export const mockDigests: DigestOut[] = [
       ],
     },
     status: "sent",
-    created_at: "2026-03-08T00:10:00Z",
-    sent_at: "2026-03-08T01:00:00Z",
+    created_at: hoursAgo(84),
+    sent_at: hoursAgo(83),
   },
 ];

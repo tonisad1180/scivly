@@ -16,25 +16,45 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toast";
 import { ScoreBadge } from "@/components/workspace/ScoreBadge";
+import { getNextRunAt } from "@/lib/mock/time";
 import { formatCalendarDate, formatDateTime } from "@/lib/utils";
 
-const cadencePresets = {
+type CadencePreset = {
+  label: string;
+  cron_expression: string;
+  hour: number;
+  weekdays?: readonly number[];
+};
+
+const cadencePresets: Record<"weekday" | "evening" | "friday", CadencePreset> = {
   weekday: {
     label: "Weekdays at 09:00",
     cron_expression: "0 9 * * 1-5",
-    next_run_at: "2026-03-11T01:00:00Z",
+    hour: 9,
+    weekdays: [1, 2, 3, 4, 5],
   },
   evening: {
     label: "Daily at 18:00",
     cron_expression: "0 18 * * *",
-    next_run_at: "2026-03-10T10:00:00Z",
+    hour: 18,
   },
   friday: {
     label: "Fridays at 17:00",
     cron_expression: "0 17 * * 5",
-    next_run_at: "2026-03-13T09:00:00Z",
+    hour: 17,
+    weekdays: [5],
   },
 } as const;
+
+function getNextRunPreview(cadenceKey: keyof typeof cadencePresets, timezone: string) {
+  const preset = cadencePresets[cadenceKey];
+
+  return getNextRunAt({
+    timeZone: timezone,
+    hour: preset.hour,
+    weekdays: preset.weekdays ? [...preset.weekdays] : undefined,
+  });
+}
 
 export default function WorkspaceDigestsPage() {
   const queryClient = useQueryClient();
@@ -320,7 +340,7 @@ export default function WorkspaceDigestsPage() {
                           channelsQuery.data
                             ?.filter((channel) => activeChannelIds.includes(channel.id))
                             .map((channel) => channel.label) ?? [],
-                        next_run_at: cadencePresets[cadenceKey].next_run_at,
+                        next_run_at: getNextRunPreview(cadenceKey, timezone),
                       })
                     }
                     disabled={updateScheduleMutation.isPending}
@@ -360,7 +380,7 @@ export default function WorkspaceDigestsPage() {
                         Next send
                       </p>
                       <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-                        {formatDateTime(cadencePresets[cadenceKey].next_run_at)}
+                        {formatDateTime(getNextRunPreview(cadenceKey, timezone))}
                       </p>
                     </div>
                   </div>

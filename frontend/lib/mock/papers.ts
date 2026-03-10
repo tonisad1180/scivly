@@ -1,4 +1,5 @@
 import { DEMO_WORKSPACE_ID } from "@/lib/mock/profiles";
+import { hoursAgo } from "@/lib/mock/time";
 import type { PaperOut } from "@/lib/api/types";
 
 export const mockPapers: PaperOut[] = [
@@ -17,8 +18,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.AI", "cs.CL", "cs.IR"],
     primary_category: "cs.AI",
     comment: "Code and benchmark release included.",
-    published_at: "2026-03-10T02:10:00Z",
-    updated_at: "2026-03-10T02:10:00Z",
+    published_at: hoursAgo(6.5),
+    updated_at: hoursAgo(6.5),
     one_line_summary:
       "A retrieval-planning loop for scientific QA that logs evidence before answering.",
     key_points: [
@@ -63,7 +64,7 @@ export const mockPapers: PaperOut[] = [
         "High likely user value because the abstract names both retrieval and verification.",
         "Benchmark release makes it immediately digest-worthy.",
       ],
-      created_at: "2026-03-10T03:00:00Z",
+      created_at: hoursAgo(5.7),
     },
   },
   {
@@ -80,8 +81,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.AI", "cs.CV", "cs.RO"],
     primary_category: "cs.CV",
     comment: "Project page and simulator videos included.",
-    published_at: "2026-03-09T19:25:00Z",
-    updated_at: "2026-03-10T01:42:00Z",
+    published_at: hoursAgo(13.5),
+    updated_at: hoursAgo(7.8),
     one_line_summary:
       "A repair loop that re-opens visual evidence only when an embodied agent fails for perception reasons.",
     key_points: [
@@ -124,7 +125,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Repair-loop framing is more actionable than general multimodal planning papers this week.",
       ],
-      created_at: "2026-03-10T02:15:00Z",
+      created_at: hoursAgo(7.3),
     },
   },
   {
@@ -142,8 +143,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.CL", "cs.LG", "stat.ML"],
     primary_category: "cs.LG",
     comment: "Open weights and long-context benchmark scripts released.",
-    published_at: "2026-03-08T23:30:00Z",
-    updated_at: "2026-03-08T23:30:00Z",
+    published_at: hoursAgo(38),
+    updated_at: hoursAgo(38),
     one_line_summary:
       "Sparse adapters keep high-value evidence alive during very long scientific review sessions.",
     key_points: [
@@ -186,7 +187,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Likely high value because it addresses evidence retention in review workflows rather than generic long-context chat.",
       ],
-      created_at: "2026-03-09T01:10:00Z",
+      created_at: hoursAgo(36.5),
     },
   },
   {
@@ -203,8 +204,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.CL", "cs.IR", "cs.AI"],
     primary_category: "cs.IR",
     comment: "Includes evaluation on benchmark reports and data statements.",
-    published_at: "2026-03-07T11:05:00Z",
-    updated_at: "2026-03-07T11:05:00Z",
+    published_at: hoursAgo(70),
+    updated_at: hoursAgo(70),
     one_line_summary:
       "Automatically links benchmark report claims back to structured dataset cards.",
     key_points: [
@@ -247,7 +248,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Worth digesting as infrastructure for evidence-backed reports, but not urgent enough for source fetch.",
       ],
-      created_at: "2026-03-08T05:20:00Z",
+      created_at: hoursAgo(66),
     },
   },
   {
@@ -265,8 +266,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.AI", "cs.CL", "cs.IR"],
     primary_category: "cs.AI",
     comment: "Includes a command-line runner and replay traces.",
-    published_at: "2026-03-09T08:15:00Z",
-    updated_at: "2026-03-09T08:15:00Z",
+    published_at: hoursAgo(24),
+    updated_at: hoursAgo(24),
     one_line_summary:
       "A replay-friendly benchmark for research agents that measures evidence quality and latency.",
     key_points: [
@@ -309,7 +310,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "High relevance to agent evaluation infrastructure and directly useful for comparing future papers.",
       ],
-      created_at: "2026-03-09T09:00:00Z",
+      created_at: hoursAgo(23),
     },
   },
   {
@@ -326,8 +327,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.CV", "cs.CL", "cs.AI"],
     primary_category: "cs.CV",
     comment: "Accepted to a multimodal reasoning workshop.",
-    published_at: "2026-03-06T14:40:00Z",
-    updated_at: "2026-03-06T14:40:00Z",
+    published_at: hoursAgo(108),
+    updated_at: hoursAgo(108),
     one_line_summary:
       "Verifies figure evidence in three passes before producing a paper explanation.",
     key_points: [
@@ -370,7 +371,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Strong fit for the workspace's future paper-detail UX even if benchmark scope is still narrow.",
       ],
-      created_at: "2026-03-07T03:40:00Z",
+      created_at: hoursAgo(101),
     },
   },
   {
@@ -387,8 +388,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.IR", "cs.LG", "stat.ML"],
     primary_category: "cs.IR",
     comment: "Includes ablations on institution and lab priors.",
-    published_at: "2026-03-05T20:10:00Z",
-    updated_at: "2026-03-05T20:10:00Z",
+    published_at: hoursAgo(131),
+    updated_at: hoursAgo(131),
     one_line_summary:
       "A careful look at when affiliation priors help paper ranking and when they distort it.",
     key_points: [
@@ -429,7 +430,7 @@ export const mockPapers: PaperOut[] = [
       threshold_decision: "pdf_queue",
       llm_rerank_delta: 0,
       llm_rerank_reasons: [],
-      created_at: "2026-03-06T06:00:00Z",
+      created_at: hoursAgo(125),
     },
   },
   {
@@ -446,8 +447,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.IR", "cs.AI", "cs.CL"],
     primary_category: "cs.IR",
     comment: "Short paper with analysis over one month of arXiv alerts.",
-    published_at: "2026-03-04T09:55:00Z",
-    updated_at: "2026-03-04T09:55:00Z",
+    published_at: hoursAgo(149),
+    updated_at: hoursAgo(149),
     one_line_summary:
       "Title-only triage is cheap, but it misses the metadata signals that make alerts trustworthy.",
     key_points: [
@@ -488,7 +489,7 @@ export const mockPapers: PaperOut[] = [
       threshold_decision: "pdf_queue",
       llm_rerank_delta: 0,
       llm_rerank_reasons: [],
-      created_at: "2026-03-05T01:25:00Z",
+      created_at: hoursAgo(140),
     },
   },
   {
@@ -506,8 +507,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.CL", "cs.AI", "stat.ML"],
     primary_category: "cs.CL",
     comment: "Evaluation slices and annotation audit released.",
-    published_at: "2026-03-03T16:35:00Z",
-    updated_at: "2026-03-03T16:35:00Z",
+    published_at: hoursAgo(166),
+    updated_at: hoursAgo(166),
     one_line_summary:
       "Shows where claim extraction models memorize annotation artifacts instead of reading evidence.",
     key_points: [
@@ -550,7 +551,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Helpful context paper with reusable benchmark lessons, but not the day's strongest operational signal.",
       ],
-      created_at: "2026-03-04T03:05:00Z",
+      created_at: hoursAgo(157),
     },
   },
   {
@@ -568,8 +569,8 @@ export const mockPapers: PaperOut[] = [
     categories: ["cs.CV", "cs.LG", "cs.AI"],
     primary_category: "cs.CV",
     comment: "Includes cost-per-page comparisons and table extraction evals.",
-    published_at: "2026-03-02T12:20:00Z",
-    updated_at: "2026-03-02T12:20:00Z",
+    published_at: hoursAgo(188),
+    updated_at: hoursAgo(188),
     one_line_summary:
       "Distillation recipes that keep document VLM quality while cutting the cost of page-level reasoning.",
     key_points: [
@@ -612,7 +613,7 @@ export const mockPapers: PaperOut[] = [
       llm_rerank_reasons: [
         "Strong follow-on value for the pipeline because it improves document-level reasoning economics.",
       ],
-      created_at: "2026-03-03T04:40:00Z",
+      created_at: hoursAgo(176),
     },
   },
 ];

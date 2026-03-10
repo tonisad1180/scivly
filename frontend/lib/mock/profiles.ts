@@ -4,6 +4,7 @@ import type {
   TopicProfileOut,
   WorkspaceSummary,
 } from "@/lib/api/types";
+import { daysAgo } from "@/lib/mock/time";
 
 export const DEMO_WORKSPACE_ID = "workspace-signal-lab";
 
@@ -28,7 +29,7 @@ export const mockProfiles: TopicProfileOut[] = [
     categories: ["cs.AI", "cs.CL", "cs.IR"],
     keywords: ["scientific qa", "retrieval", "verification", "benchmark", "tool use"],
     is_default: true,
-    created_at: "2026-03-02T01:15:00Z",
+    created_at: daysAgo(8),
     match_count_24h: 7,
   },
   {
@@ -40,7 +41,7 @@ export const mockProfiles: TopicProfileOut[] = [
     categories: ["cs.AI", "cs.CV", "cs.RO"],
     keywords: ["multimodal", "vision-language", "grounding", "embodied", "figure reasoning"],
     is_default: false,
-    created_at: "2026-03-04T06:20:00Z",
+    created_at: daysAgo(6),
     match_count_24h: 5,
   },
   {
@@ -52,7 +53,7 @@ export const mockProfiles: TopicProfileOut[] = [
     categories: ["cs.CL", "cs.LG", "stat.ML"],
     keywords: ["long context", "memory", "adapter", "distillation", "sparse"],
     is_default: false,
-    created_at: "2026-03-05T08:10:00Z",
+    created_at: daysAgo(5),
     match_count_24h: 4,
   },
 ];
