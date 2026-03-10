@@ -11,7 +11,7 @@ from typing import Iterable
 
 from .pipeline import Pipeline, PipelineStep
 from .queue import DEFAULT_REDIS_URL, TaskQueue, build_task_queue, normalize_task_type
-from .task import TaskPayload, TaskType
+from .task import TaskType
 
 LOGGER = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ class WorkerRunner:
         self.task_types = [normalize_task_type(task_type) for task_type in task_types]
         self.poll_timeout = poll_timeout
         self.idle_sleep_seconds = idle_sleep_seconds
+        self._poll_cursor = 0
         self._stop_requested = False
 
     def request_shutdown(self, *_args: object) -> None:
@@ -53,12 +54,20 @@ class WorkerRunner:
 
     async def run_once(self, *, timeout: int | None = None) -> bool:
         dequeue_timeout = self.poll_timeout if timeout is None else timeout
+        if not self.task_types:
+            return False
 
-        for task_type in self.task_types:
-            task = await asyncio.to_thread(self.queue.dequeue, task_type, dequeue_timeout)
+        total_task_types = len(self.task_types)
+        ordered_task_types = self.task_types[self._poll_cursor :] + self.task_types[: self._poll_cursor]
+
+        for offset, task_type in enumerate(ordered_task_types):
+            source_index = (self._poll_cursor + offset) % total_task_types
+            timeout_for_type = dequeue_timeout if offset == 0 else 0
+            task = await asyncio.to_thread(self.queue.dequeue, task_type, timeout_for_type)
             if task is None:
                 continue
 
+            self._poll_cursor = (source_index + 1) % total_task_types
             try:
                 result = await self.pipeline.execute_task(task)
             except Exception as exc:
@@ -69,6 +78,7 @@ class WorkerRunner:
                 LOGGER.info("Task %s completed", task.task_id)
             return True
 
+        self._poll_cursor = (self._poll_cursor + 1) % total_task_types
         return False
 
     async def run_forever(self) -> None:
@@ -84,8 +94,10 @@ class WorkerRunner:
         signal.signal(signal.SIGTERM, self.request_shutdown)
 
 
+
 def build_default_pipeline(task_types: Iterable[str | TaskType]) -> Pipeline:
     return Pipeline(LoggingStep(task_type) for task_type in task_types)
+
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -133,6 +145,7 @@ async def _run_from_args(args: argparse.Namespace) -> None:
         poll_timeout=args.poll_timeout,
     )
     await runner.run_forever()
+
 
 
 def main() -> None:

@@ -6,6 +6,7 @@ from workers.common.queue import InMemoryTaskQueue
 from workers.common.task import TaskResult, TaskResultStatus, TaskStatus
 
 
+
 def test_inmemory_queue_ack_flow(sample_task) -> None:
     queue = InMemoryTaskQueue()
 
@@ -29,6 +30,7 @@ def test_inmemory_queue_ack_flow(sample_task) -> None:
     assert queue.get_result(task_id) == result
 
 
+
 def test_inmemory_queue_nack_requeues_then_dead_letters(sample_task) -> None:
     queue = InMemoryTaskQueue(max_attempts=2)
     task_id = queue.enqueue(sample_task)
@@ -47,4 +49,5 @@ def test_inmemory_queue_nack_requeues_then_dead_letters(sample_task) -> None:
 
     assert queue.get_status(task_id) is TaskStatus.DEAD
     assert queue.get_attempts(task_id) == 2
+    assert queue.get_dead_letters(sample_task.task_type) == [task_id]
     assert queue.dequeue(sample_task.task_type.value, timeout=0) is None

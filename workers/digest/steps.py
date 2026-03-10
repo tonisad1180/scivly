@@ -44,11 +44,20 @@ class DeliverDigestStep(PipelineStep):
         if not isinstance(digest, dict):
             raise ValueError("Digest delivery requires assembled digest content")
 
-        channels = payload.get("channels") or ["log"]
+        channels = self._normalize_channels(payload.get("channels"))
         return {
             "delivery": {
                 "status": "logged",
-                "channels": list(channels),
+                "channels": channels,
                 "digest_title": digest.get("title"),
             }
         }
+
+    def _normalize_channels(self, value: Any) -> list[str]:
+        if value is None:
+            return ["log"]
+        if isinstance(value, str):
+            return [value]
+        if isinstance(value, (list, tuple, set)):
+            return [str(channel) for channel in value]
+        raise ValueError("Digest delivery channels must be a string or a list of strings")

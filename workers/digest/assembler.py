@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable as IterableABC
 from datetime import datetime, timezone
 from typing import Any, Iterable
+
 
 
 def utc_now() -> datetime:
@@ -70,17 +72,17 @@ class DigestAssembler:
         }
 
     def _group_key(self, paper: dict[str, Any]) -> str:
-        matched_topics = paper.get("matched_topics") or []
+        matched_topics = self._normalize_string_list(paper.get("matched_topics"))
         if matched_topics:
-            return str(matched_topics[0]).lower().replace(" ", "-")
+            return matched_topics[0].lower().replace(" ", "-")
 
         primary_category = paper.get("primary_category")
         if primary_category:
             return str(primary_category).lower()
 
-        categories = paper.get("categories") or []
+        categories = self._normalize_string_list(paper.get("categories"))
         if categories:
-            return str(categories[0]).lower()
+            return categories[0].lower()
 
         return "general"
 
@@ -88,13 +90,22 @@ class DigestAssembler:
         return group_key.replace("-", " ").upper()
 
     def _serialize_paper(self, paper: dict[str, Any]) -> dict[str, Any]:
-        matched_rules = paper.get("matched_rules") or []
+        matched_rules = self._normalize_string_list(paper.get("matched_rules"))
         return {
             "paper_id": str(paper.get("paper_id") or paper.get("id") or ""),
             "title": paper.get("title", "Untitled paper"),
             "summary": paper.get("one_line_summary") or paper.get("summary") or "",
             "score": float(paper.get("total_score", 0.0)),
             "primary_category": paper.get("primary_category"),
-            "categories": list(paper.get("categories") or []),
+            "categories": self._normalize_string_list(paper.get("categories")),
             "reasons": matched_rules[:3],
         }
+
+    def _normalize_string_list(self, value: Any) -> list[str]:
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [value]
+        if isinstance(value, IterableABC) and not isinstance(value, (bytes, dict)):
+            return [str(item) for item in value if item is not None]
+        return [str(value)]

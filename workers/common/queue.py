@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import time
 from abc import ABC, abstractmethod
@@ -67,6 +66,7 @@ class InMemoryTaskQueue(TaskQueue):
         super().__init__(max_attempts=max_attempts)
         self._entries: dict[str, QueueEntry] = {}
         self._queues: dict[str, Deque[str]] = defaultdict(deque)
+        self._dead_letters: dict[str, Deque[str]] = defaultdict(deque)
         self._condition = Condition()
 
     def enqueue(self, task: TaskPayload) -> str:
@@ -112,16 +112,21 @@ class InMemoryTaskQueue(TaskQueue):
             entry = self._require_entry(task_id)
             entry.attempts += 1
             entry.last_error = error
+            task_type = normalize_task_type(entry.task.task_type)
 
             if entry.attempts >= self.max_attempts:
                 entry.status = TaskStatus.DEAD
+                self._dead_letters[task_type].append(task_id)
             else:
                 entry.status = TaskStatus.QUEUED
-                self._queues[normalize_task_type(entry.task.task_type)].append(task_id)
-                self._condition.notify_all()
+                self._queues[task_type].append(task_id)
+            self._condition.notify_all()
 
     def get_status(self, task_id: str) -> TaskStatus:
         return self._require_entry(task_id).status
+
+    def get_dead_letters(self, task_type: str | TaskType) -> list[str]:
+        return list(self._dead_letters[normalize_task_type(task_type)])
 
     def get_attempts(self, task_id: str) -> int:
         return self._require_entry(task_id).attempts
@@ -194,7 +199,7 @@ class RedisTaskQueue(TaskQueue):
         self.client.hset(
             self._task_key(task_id),
             mapping={
-                "status": TaskStatus.COMPLETED.value,
+                "status": result.status.value,
                 "result": result.model_dump_json(),
                 "last_error": result.error or "",
             },
@@ -237,6 +242,7 @@ class RedisTaskQueue(TaskQueue):
         return f"{self.prefix}:dead:{normalize_task_type(task_type)}"
 
 
+
 def build_task_queue(
     *,
     backend: str | None = None,
@@ -248,6 +254,4 @@ def build_task_queue(
         return InMemoryTaskQueue(max_attempts=max_attempts)
     if selected_backend == "redis":
         return RedisTaskQueue(redis_url=redis_url, max_attempts=max_attempts)
-    raise ValueError(
-        "Unsupported queue backend. Expected one of: memory, redis."
-    )
+    raise ValueError("Unsupported queue backend. Expected one of: memory, redis.")

@@ -11,6 +11,7 @@ from workers.digest.assembler import DigestAssembler
 from workers.digest.steps import AssembleDigestStep, DeliverDigestStep
 
 
+
 def test_digest_assembler_groups_and_limits_papers() -> None:
     assembler = DigestAssembler(max_papers_per_section=2)
     papers = [
@@ -61,6 +62,28 @@ def test_digest_assembler_groups_and_limits_papers() -> None:
     assert digest["sections"][1]["papers"][0]["paper_id"] == "p4"
 
 
+
+def test_digest_assembler_normalizes_string_like_fields() -> None:
+    assembler = DigestAssembler()
+    digest = assembler.assemble(
+        [
+            {
+                "paper_id": "p1",
+                "title": "Agentic Retrieval for Science",
+                "total_score": 83.0,
+                "matched_topics": "retrieval agents",
+                "categories": "cs.AI",
+                "matched_rules": "topic:retrieval",
+            }
+        ]
+    )
+
+    assert digest["sections"][0]["section_id"] == "retrieval-agents"
+    assert digest["sections"][0]["papers"][0]["categories"] == ["cs.AI"]
+    assert digest["sections"][0]["papers"][0]["reasons"] == ["topic:retrieval"]
+
+
+
 def test_deliver_pipeline_executes_assembly_and_delivery_steps() -> None:
     pipeline = Pipeline([AssembleDigestStep(), DeliverDigestStep()])
     task = TaskPayload(
@@ -89,3 +112,29 @@ def test_deliver_pipeline_executes_assembly_and_delivery_steps() -> None:
     assert result.result["steps"]["AssembleDigestStep"]["selected_paper_count"] == 1
     assert result.result["steps"]["DeliverDigestStep"]["delivery"]["status"] == "logged"
     assert result.result["final"]["delivery"]["channels"] == ["email", "discord"]
+
+
+
+def test_deliver_step_normalizes_single_channel_string() -> None:
+    pipeline = Pipeline([AssembleDigestStep(), DeliverDigestStep()])
+    task = TaskPayload(
+        task_type=TaskType.DELIVER,
+        workspace_id=uuid4(),
+        idempotency_key="digest-deliver-002",
+        payload={
+            "workspace_name": "Demo Workspace",
+            "channels": "email",
+            "papers": [
+                {
+                    "paper_id": "p1",
+                    "title": "Agentic Retrieval for Science",
+                    "total_score": 83.0,
+                    "primary_category": "cs.AI",
+                }
+            ],
+        },
+    )
+
+    result = asyncio.run(pipeline.execute_task(task))
+
+    assert result.result["final"]["delivery"]["channels"] == ["email"]
