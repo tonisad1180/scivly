@@ -5,6 +5,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FAST_MODE="false"
 NO_START="false"
+FRONTEND_PORT="3100"
+BACKEND_PORT="8100"
+BACKEND_VENV_DIR="${ROOT_DIR}/backend/.venv"
+BACKEND_PYTHON=""
 
 print_help() {
   cat <<'EOF'
@@ -41,6 +45,37 @@ done
 
 log() {
   printf '[rebuild] %s\n' "$1"
+}
+
+resolve_backend_python() {
+  if [[ -n "${BACKEND_PYTHON}" && -x "${BACKEND_PYTHON}" ]]; then
+    return 0
+  fi
+
+  if [[ -x "${BACKEND_VENV_DIR}/bin/python" ]]; then
+    BACKEND_PYTHON="${BACKEND_VENV_DIR}/bin/python"
+    return 0
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    BACKEND_PYTHON="$(python3 -c 'import os, sys; print(os.path.realpath(sys.executable))')"
+    return 0
+  fi
+
+  return 1
+}
+
+ensure_backend_venv() {
+  if [[ -x "${BACKEND_VENV_DIR}/bin/python" ]]; then
+    return 0
+  fi
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    return 1
+  fi
+
+  log "Creating backend virtual environment at ${BACKEND_VENV_DIR}."
+  python3 -m venv "${BACKEND_VENV_DIR}"
 }
 
 kill_port() {
@@ -124,9 +159,9 @@ install_backend() {
   fi
 
   if [[ -f "${ROOT_DIR}/backend/requirements.txt" ]]; then
-    if command -v python3 >/dev/null 2>&1; then
-      log "Installing backend Python dependencies."
-      (cd "${ROOT_DIR}/backend" && python3 -m pip install -r requirements.txt)
+    if ensure_backend_venv && resolve_backend_python; then
+      log "Installing backend Python dependencies in ${BACKEND_VENV_DIR}."
+      (cd "${ROOT_DIR}/backend" && "${BACKEND_PYTHON}" -m pip install -r requirements.txt)
     else
       log "Python 3 is not available, skipping backend dependency install."
     fi
@@ -144,8 +179,8 @@ else
 fi
 echo "=========================================="
 
-kill_port 3000
-kill_port 8000
+kill_port "${FRONTEND_PORT}"
+kill_port "${BACKEND_PORT}"
 
 clean_frontend
 clean_backend
@@ -163,4 +198,9 @@ if [[ "${NO_START}" == "true" ]]; then
 fi
 
 log "Starting development environment."
+export SCIVLY_FRONTEND_PORT="${FRONTEND_PORT}"
+export SCIVLY_BACKEND_PORT="${BACKEND_PORT}"
+if resolve_backend_python; then
+  export SCIVLY_BACKEND_PYTHON="${BACKEND_PYTHON}"
+fi
 exec "${ROOT_DIR}/scripts/dev.sh"
