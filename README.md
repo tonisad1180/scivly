@@ -71,10 +71,9 @@ scripts/      Bootstrap and local utility scripts
 ## Core Docs
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
-- [SCIVLY_PLAN.md](./SCIVLY_PLAN.md)
-- [FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)
-- [OPEN_SOURCE_SCOPE.md](./OPEN_SOURCE_SCOPE.md)
-- [PIPELINE_PATTERN.md](./PIPELINE_PATTERN.md)
+
+Additional design notes should live in `docs/` or the owning workspace `README.md` instead of
+adding more root-level Markdown files.
 
 ## Open Source Direction
 
