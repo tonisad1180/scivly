@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import { siteConfig } from "@/lib/site-config";
 import { absoluteUrl, resolveSiteUrl } from "@/lib/site-url";
 
 import "./globals.css";
 import { ThemeProvider } from "./providers";
+import { ScivlySessionProvider } from "@/lib/auth/scivly-session";
 
 export const metadata: Metadata = {
   metadataBase: new URL(resolveSiteUrl()),
@@ -38,18 +40,29 @@ export const metadata: Metadata = {
   },
 };
 
+const FALLBACK_CLERK_PUBLISHABLE_KEY = "pk_test_c2Npdmx5LmNsZXJrLmFjY291bnRzLmRldiQ=";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-[var(--background)] font-[family:var(--font-body)] text-[var(--foreground)] antialiased transition-colors duration-300">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? FALLBACK_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignOutUrl="/"
+    >
+      <html lang="en" suppressHydrationWarning>
+        <body className="bg-[var(--background)] font-[family:var(--font-body)] text-[var(--foreground)] antialiased transition-colors duration-300">
+          <ThemeProvider>
+            <ScivlySessionProvider>
+              {children}
+            </ScivlySessionProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

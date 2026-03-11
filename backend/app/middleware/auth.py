@@ -1,96 +1,84 @@
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
-from typing import Literal, cast
-
-from app.schemas.auth import UserOut
+from app.auth_context import build_current_user_from_token
+from app.config import get_settings
+from app.middleware.error_handler import APIError
 from app.schemas.common import ErrorResponse
 
-DEFAULT_USER_ID = UUID("00000000-0000-0000-0000-000000000101")
-DEFAULT_WORKSPACE_ID = UUID("00000000-0000-0000-0000-000000000201")
-UserRole = Literal["owner", "admin", "member"]
-VALID_ROLES: set[UserRole] = {"owner", "admin", "member"}
+PUBLIC_PATHS = {
+    "/docs",
+    "/docs/oauth2-redirect",
+    "/health",
+    "/openapi.json",
+    "/ready",
+    "/redoc",
+}
 
 
-def _invalid_auth_header_response(request_id: str, header_name: str, reason: str) -> JSONResponse:
+def _error_response(
+    request_id: str,
+    *,
+    status_code: int,
+    error: str,
+    message: str,
+    details: list[dict[str, str]] | None = None,
+) -> JSONResponse:
     payload = ErrorResponse(
-        error="invalid_auth_header",
-        message=f"The `{header_name}` header is invalid.",
-        details=[{"header": header_name, "reason": reason}],
+        error=error,
+        message=message,
+        details=details,
         request_id=request_id,
     )
     return JSONResponse(
-        status_code=400,
+        status_code=status_code,
         content=payload.model_dump(mode="json"),
         headers={"x-request-id": request_id},
     )
 
 
-def _parse_uuid_header(request_id: str, header_name: str, raw_value: str, default_value: UUID) -> tuple[UUID, JSONResponse | None]:
-    if not raw_value:
-        return default_value, None
-    try:
-        return UUID(raw_value), None
-    except ValueError:
-        return default_value, _invalid_auth_header_response(request_id, header_name, "Expected a valid UUID string.")
+def _invalid_auth_header_response(request_id: str, reason: str) -> JSONResponse:
+    return _error_response(
+        request_id,
+        status_code=400,
+        error="invalid_auth_header",
+        message="The `Authorization` header is invalid.",
+        details=[{"header": "Authorization", "reason": reason}],
+    )
+
+
+def _api_error_response(request_id: str, error: APIError) -> JSONResponse:
+    return _error_response(
+        request_id,
+        status_code=error.status_code,
+        error=error.code,
+        message=error.message,
+        details=error.details,
+    )
 
 
 class AuthContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id = request.headers.get("x-request-id", str(uuid4()))
-        raw_user_id = request.headers.get("x-scivly-user-id", str(DEFAULT_USER_ID))
-        raw_workspace_id = request.headers.get("x-scivly-workspace-id", str(DEFAULT_WORKSPACE_ID))
-        email = request.headers.get("x-scivly-user-email", "researcher@scivly.dev")
-        role = request.headers.get("x-scivly-user-role", "owner")
-        name = request.headers.get("x-scivly-user-name", "Demo Researcher")
-
         request.state.request_id = request_id
+        authorization = request.headers.get("authorization")
 
-        user_id, error_response = _parse_uuid_header(
-            request_id,
-            "x-scivly-user-id",
-            raw_user_id,
-            DEFAULT_USER_ID,
-        )
-        if error_response is not None:
-            return error_response
+        if authorization:
+            parts = authorization.split(" ", 1)
+            if len(parts) != 2 or parts[0].lower() != "bearer" or not parts[1].strip():
+                return _invalid_auth_header_response(request_id, "Expected a Bearer token.")
 
-        workspace_id, error_response = _parse_uuid_header(
-            request_id,
-            "x-scivly-workspace-id",
-            raw_workspace_id,
-            DEFAULT_WORKSPACE_ID,
-        )
-        if error_response is not None:
-            return error_response
-
-        if role not in VALID_ROLES:
-            return _invalid_auth_header_response(
-                request_id,
-                "x-scivly-user-role",
-                "Expected one of: owner, admin, member.",
-            )
-        validated_role = cast(UserRole, role)
-
-        try:
-            request.state.current_user = UserOut(
-                id=user_id,
-                email=email,
-                name=name,
-                avatar_url="https://images.scivly.dev/avatar/demo-researcher.png",
-                workspace_id=workspace_id,
-                role=validated_role,
-            )
-        except ValidationError:
-            # Exceptions raised inside BaseHTTPMiddleware bypass the normal FastAPI exception handlers.
-            return _invalid_auth_header_response(
-                request_id,
-                "x-scivly-auth-context",
-                "Failed to build the request user context from headers.",
-            )
+            try:
+                request.state.current_user = build_current_user_from_token(
+                    token=parts[1].strip(),
+                    settings=get_settings(),
+                )
+            except APIError as error:
+                return _api_error_response(request_id, error)
+        elif request.url.path not in PUBLIC_PATHS:
+            request.state.current_user = None
 
         response = await call_next(request)
         response.headers["x-request-id"] = request_id

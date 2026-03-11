@@ -10,7 +10,13 @@ This directory is reserved for the Scivly web app.
 - Vercel: set the project Root Directory to `frontend`
 - Vercel config: `frontend/vercel.json`
 
-`npm run start` serves the existing static export from `dist/`.
-`npm run preview` rebuilds the static export and serves it locally.
+Auth bootstrap:
+- set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
+- protected user routes live under `/workspace/*`
+- `frontend/proxy.ts` guards those routes with Clerk
+- the client session provider syncs Clerk identity to the backend via `/auth/me` and `/workspaces`
+
+`npm run start` runs the production Next.js server on port `3100`.
+`npm run preview` rebuilds the app and starts that production server locally.
 
 Do not move backend business logic here. The frontend should consume backend APIs instead of becoming a second application core.
