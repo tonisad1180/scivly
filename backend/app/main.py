@@ -39,6 +39,7 @@ def create_app() -> FastAPI:
             {"name": "Chat", "description": "Paper and digest chat sessions."},
             {"name": "Webhooks", "description": "Webhook configuration endpoints."},
             {"name": "API Keys", "description": "Developer API key management."},
+            {"name": "Billing", "description": "Stripe subscriptions, checkout, portal, and usage limits."},
             {"name": "Usage", "description": "Workspace usage and billing summaries."},
         ],
     )

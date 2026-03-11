@@ -1,6 +1,7 @@
 from app.routers import (
     api_keys,
     auth,
+    billing,
     chat,
     digests,
     health,
@@ -23,6 +24,7 @@ ROUTERS = (
     chat.router,
     webhooks.router,
     api_keys.router,
+    billing.router,
     usage.router,
 )
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { KeyRound, Webhook } from "lucide-react";
+import { CreditCard, KeyRound, Webhook } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiKeySettingsPanel } from "@/components/workspace/ApiKeySettingsPanel";
+import { BillingSettingsPanel } from "@/components/workspace/billing-settings-panel";
 import { WebhookSettingsPanel } from "@/components/workspace/WebhookSettingsPanel";
 
 export default function WorkspaceSettingsPage() {
@@ -33,6 +34,10 @@ export default function WorkspaceSettingsPage() {
             <Webhook className="size-4" />
             Webhooks
           </TabsTrigger>
+          <TabsTrigger value="billing" className="gap-2">
+            <CreditCard className="size-4" />
+            Billing
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="api-keys">
@@ -41,6 +46,10 @@ export default function WorkspaceSettingsPage() {
 
         <TabsContent value="webhooks">
           <WebhookSettingsPanel />
+        </TabsContent>
+
+        <TabsContent value="billing">
+          <BillingSettingsPanel />
         </TabsContent>
       </Tabs>
     </div>
