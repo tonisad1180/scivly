@@ -41,6 +41,24 @@ export interface PaginatedResponse<T> {
   per_page: number;
 }
 
+export interface AuthUserOut {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string | null;
+  workspace_id: string;
+  role: WorkspaceRole;
+}
+
+export interface BackendWorkspaceOut {
+  id: string;
+  name: string;
+  slug: string;
+  plan: "free" | "pro" | "team" | "enterprise";
+  role: WorkspaceRole;
+  created_at: ApiDateString;
+}
+
 export interface WorkspaceSummary {
   id: string;
   name: string;

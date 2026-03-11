@@ -1,7 +1,9 @@
+from typing import Annotated
+
 from functools import lru_cache
 
 from pydantic import AliasChoices, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -27,16 +29,47 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SCIVLY_REDIS_URL", "REDIS_URL"),
     )
     run_migrations_on_startup: bool = False
-    cors_allowed_origins: list[str] = Field(
+    cors_allowed_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "http://localhost:3100",
             "http://localhost:3000",
         ]
     )
+    auth_jwt_secret: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SCIVLY_AUTH_JWT_SECRET", "AUTH_JWT_SECRET"),
+    )
+    auth_jwt_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SCIVLY_AUTH_JWT_KEY", "CLERK_JWT_KEY"),
+    )
+    auth_jwks_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SCIVLY_AUTH_JWKS_URL", "CLERK_JWKS_URL"),
+    )
+    auth_issuer: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SCIVLY_AUTH_ISSUER", "CLERK_ISSUER"),
+    )
+    auth_audience: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SCIVLY_AUTH_AUDIENCE", "CLERK_AUDIENCE"),
+    )
+    auth_authorized_parties: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3100"],
+        validation_alias=AliasChoices("SCIVLY_AUTH_AUTHORIZED_PARTIES", "AUTH_AUTHORIZED_PARTIES"),
+    )
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod
     def split_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
+
+    @field_validator("auth_authorized_parties", mode="before")
+    @classmethod
+    def split_authorized_parties(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value

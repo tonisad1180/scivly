@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 
@@ -78,10 +79,25 @@ export function SiteHeader() {
             >
               Docs
             </Link>
-            <Link href="/admin" className="btn-primary text-sm">
-              Console
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="hidden rounded-full px-4 py-2 text-sm font-medium text-[var(--foreground-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)] sm:inline-flex"
+              >
+                Sign in
+              </Link>
+              <Link href="/sign-up" className="btn-primary text-sm">
+                Start free
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/workspace/feed" prefetch={false} className="btn-primary text-sm">
+                Workspace
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
         </div>
 

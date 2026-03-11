@@ -2,8 +2,10 @@ import asyncio
 import os
 from collections.abc import Generator
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import jwt
 import pytest
 from fastapi.testclient import TestClient
 
@@ -18,6 +20,8 @@ from app.config import get_settings  # noqa: E402
 from app.db import close_engine, reset_database_state, run_migrations, run_seeds, truncate_public_tables  # noqa: E402
 from app.main import create_app  # noqa: E402
 
+TEST_AUTH_SECRET = "scivly-test-secret-1234567890-abcdef"
+
 
 def _bootstrap_database() -> None:
     asyncio.run(run_migrations())
@@ -26,6 +30,18 @@ def _bootstrap_database() -> None:
     asyncio.run(close_engine())
     reset_database_state()
     get_settings.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def auth_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SCIVLY_AUTH_JWT_SECRET", TEST_AUTH_SECRET)
+    monkeypatch.setenv("SCIVLY_AUTH_AUTHORIZED_PARTIES", "http://localhost:3100")
+    get_settings.cache_clear()
+
+    try:
+        yield
+    finally:
+        get_settings.cache_clear()
 
 
 @pytest.fixture()
@@ -37,3 +53,34 @@ def client() -> Generator[TestClient, None, None]:
     asyncio.run(close_engine())
     reset_database_state()
     get_settings.cache_clear()
+
+
+@pytest.fixture()
+def issue_token() -> callable:
+    def _issue_token(
+        *,
+        sub: str = "user_test",
+        azp: str = "http://localhost:3100",
+        **claims,
+    ) -> str:
+        now = datetime.now(timezone.utc)
+        payload = {
+            "sub": sub,
+            "sid": f"sess_{sub}",
+            "azp": azp,
+            "iat": int(now.timestamp()),
+            "nbf": int(now.timestamp()),
+            "exp": int((now + timedelta(hours=1)).timestamp()),
+            **claims,
+        }
+        return jwt.encode(payload, TEST_AUTH_SECRET, algorithm="HS256")
+
+    return _issue_token
+
+
+@pytest.fixture()
+def auth_headers(issue_token: callable) -> callable:
+    def _auth_headers(**claims) -> dict[str, str]:
+        return {"Authorization": f"Bearer {issue_token(**claims)}"}
+
+    return _auth_headers

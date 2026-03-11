@@ -1,5 +1,6 @@
 "use client";
 
+import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -34,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Toaster } from "@/components/ui/toaster";
-import { mockWorkspace } from "@/lib/mock/profiles";
+import { useScivlySession } from "@/lib/auth/scivly-session";
 
 const pageMeta: Record<string, { title: string; subtitle: string }> = {
   "/workspace/feed": {
@@ -121,6 +122,7 @@ export default function WorkspaceLayout({
 }>) {
   const pathname = usePathname();
   const currentPage = pageMeta[pathname] ?? pageMeta["/workspace/feed"];
+  const session = useScivlySession();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -133,6 +135,12 @@ export default function WorkspaceLayout({
       })
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const workspace = session.workspace;
+  const workspaceName = workspace?.name ?? "Workspace";
+  const workspaceDescription = session.user
+    ? `Authenticated as ${session.user.name}${session.user.email ? ` · ${session.user.email}` : ""}.`
+    : "Authenticating workspace context...";
+  const workspacePlan = workspace?.plan.toUpperCase() ?? "SYNCING";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -149,17 +157,17 @@ export default function WorkspaceLayout({
                 User workspace
               </p>
               <h2 className="mt-3 font-[family:var(--font-display)] text-2xl font-semibold tracking-tight">
-                {mockWorkspace.name}
+                {workspaceName}
               </h2>
               <p className="mt-3 text-sm leading-6 text-[var(--foreground-muted)]">
-                {mockWorkspace.description}
+                {workspaceDescription}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full bg-[var(--primary-subtle)] px-3 py-1 text-xs font-medium text-[var(--primary)]">
-                  {mockWorkspace.plan}
+                  {workspacePlan}
                 </span>
                 <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
-                  Mock data
+                  Clerk session
                 </span>
               </div>
             </div>
@@ -167,6 +175,12 @@ export default function WorkspaceLayout({
             <div className="mt-6">
               <WorkspaceNav pathname={pathname} />
             </div>
+
+            {session.error ? (
+              <div className="mt-6 rounded-[24px] border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-200">
+                {session.error}
+              </div>
+            ) : null}
 
             <div className="mt-auto space-y-4 px-1 pt-6">
               <div className="rounded-[24px] border border-[var(--border)] bg-[var(--surface)]/82 p-4 shadow-[var(--shadow-sm)]">
@@ -218,10 +232,10 @@ export default function WorkspaceLayout({
                           className="left-0 top-0 h-full w-[22rem] max-w-[calc(100%-3rem)] translate-x-0 translate-y-0 rounded-none rounded-r-[28px] border-l-0 p-0"
                           showCloseButton={false}
                         >
-                          <div className="flex h-full flex-col">
+                            <div className="flex h-full flex-col">
                             <DialogHeader className="border-b border-[var(--border)] p-6">
-                              <DialogTitle>{mockWorkspace.name}</DialogTitle>
-                              <DialogDescription>{mockWorkspace.description}</DialogDescription>
+                              <DialogTitle>{workspaceName}</DialogTitle>
+                              <DialogDescription>{workspaceDescription}</DialogDescription>
                             </DialogHeader>
                             <div className="flex-1 px-4 py-6">
                               <WorkspaceNav pathname={pathname} onNavigate={() => setMobileOpen(false)} />
@@ -236,28 +250,34 @@ export default function WorkspaceLayout({
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="secondary" size="sm" className="gap-2">
-                            <span className="hidden sm:inline">{mockWorkspace.name}</span>
+                            <span className="hidden sm:inline">{workspaceName}</span>
                             <ChevronDown className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Workspace</DropdownMenuLabel>
-                          <DropdownMenuItem>{mockWorkspace.name}</DropdownMenuItem>
+                          <DropdownMenuItem>{workspaceName}</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem disabled>Team workspace switcher comes later</DropdownMenuItem>
+                          <DropdownMenuItem disabled>
+                            {session.user?.email ?? "Backend workspace sync in progress"}
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
 
                       <ThemeToggle className="hidden sm:inline-flex" />
+                      <UserButton afterSignOutUrl="/" />
                     </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--foreground-muted)]">
                     <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/82 px-3 py-1.5">
-                      API-ready types
+                      {session.backendUser?.role ?? "owner"} access
                     </span>
                     <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/82 px-3 py-1.5">
-                      Dev port 3100
+                      {workspace?.slug ?? "workspace-sync"}
+                    </span>
+                    <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/82 px-3 py-1.5">
+                      {session.isSyncing ? "Syncing backend session" : "Backend session ready"}
                     </span>
                     <span className="rounded-full border border-[var(--border)] bg-[var(--surface)]/82 px-3 py-1.5">
                       Backend default 8100
