@@ -1,6 +1,6 @@
 import asyncio
 import os
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -23,6 +23,22 @@ from app.main import create_app  # noqa: E402
 TEST_AUTH_SECRET = "scivly-test-secret-1234567890-abcdef"
 
 
+def _database_is_reachable() -> bool:
+    import asyncpg  # noqa: F811
+
+    async def _try_connect() -> None:
+        conn = await asyncpg.connect(os.environ.get("DATABASE_URL", "postgresql://localhost:5432/scivly"))
+        await conn.close()
+
+    try:
+        asyncio.run(_try_connect())
+        return True
+    except (OSError, asyncpg.PostgresError):
+        # OSError covers connection refused / host unreachable.
+        # PostgresError covers missing database, invalid role, etc.
+        return False
+
+
 def _bootstrap_database() -> None:
     asyncio.run(run_migrations())
     asyncio.run(truncate_public_tables())
@@ -33,7 +49,7 @@ def _bootstrap_database() -> None:
 
 
 @pytest.fixture(autouse=True)
-def auth_config(monkeypatch: pytest.MonkeyPatch) -> None:
+def auth_config(monkeypatch: pytest.MonkeyPatch) -> Generator[None, None, None]:
     monkeypatch.setenv("SCIVLY_AUTH_JWT_SECRET", TEST_AUTH_SECRET)
     monkeypatch.setenv("SCIVLY_AUTH_AUTHORIZED_PARTIES", "http://localhost:3100")
     get_settings.cache_clear()
@@ -44,8 +60,16 @@ def auth_config(monkeypatch: pytest.MonkeyPatch) -> None:
         get_settings.cache_clear()
 
 
+_db_reachable: bool | None = None
+
+
 @pytest.fixture()
 def client() -> Generator[TestClient, None, None]:
+    global _db_reachable
+    if _db_reachable is None:
+        _db_reachable = _database_is_reachable()
+    if not _db_reachable:
+        pytest.skip("PostgreSQL is not reachable")
     _bootstrap_database()
     app = create_app()
     with TestClient(app) as test_client:
@@ -56,12 +80,12 @@ def client() -> Generator[TestClient, None, None]:
 
 
 @pytest.fixture()
-def issue_token() -> callable:
+def issue_token() -> Callable[..., str]:
     def _issue_token(
         *,
         sub: str = "user_test",
         azp: str = "http://localhost:3100",
-        **claims,
+        **claims: object,
     ) -> str:
         now = datetime.now(timezone.utc)
         payload = {
@@ -79,8 +103,8 @@ def issue_token() -> callable:
 
 
 @pytest.fixture()
-def auth_headers(issue_token: callable) -> callable:
-    def _auth_headers(**claims) -> dict[str, str]:
+def auth_headers(issue_token: Callable[..., str]) -> Callable[..., dict[str, str]]:
+    def _auth_headers(**claims: object) -> dict[str, str]:
         return {"Authorization": f"Bearer {issue_token(**claims)}"}
 
     return _auth_headers
