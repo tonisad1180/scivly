@@ -6,6 +6,7 @@ This directory is reserved for Scivly ingestion, enrichment, and delivery worker
 - `pdf/` for PDF download and full-text fetch tracking
 - `digest/` for digest assembly and delivery
 - `common/` for shared pipeline infrastructure
+- `index/` for embedding generation and pgvector indexing
 
 Workers own batch and document-heavy processing. They should not become a second API surface.
 

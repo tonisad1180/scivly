@@ -146,6 +146,7 @@ def test_delete_workspace_removes_it_from_follow_up_reads(
     bootstrap_response = client.get("/workspaces", headers=headers)
     assert bootstrap_response.status_code == 200
 
+
     delete_response = client.delete(f"/workspaces/{workspace_id}", headers=headers)
     assert delete_response.status_code == 204
 
@@ -172,7 +173,11 @@ def test_papers_and_scores_read_from_database(
     auth_headers: Callable[..., dict[str, str]],
 ) -> None:
     headers = auth_headers(workspace_id=DEMO_WORKSPACE_ID)
-    response = client.get("/papers", headers=headers)
+    response = client.get(
+        "/papers",
+        params={"sort": "score_desc"},
+        headers=headers,
+    )
 
     assert response.status_code == 200
     payload = response.json()

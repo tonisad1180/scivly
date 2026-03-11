@@ -5,6 +5,9 @@ from collections.abc import Callable
 import asyncpg
 from fastapi.testclient import TestClient
 
+from workers.index.embedder import HashEmbeddingProvider
+from workers.index.steps import IndexPapersStep
+
 DEMO_WORKSPACE_ID = "00000000-0000-0000-0000-000000000201"
 
 
@@ -113,3 +116,65 @@ def test_digest_preview_returns_unique_paper_ids(
     assert response.status_code == 200
     paper_ids = response.json()["paper_ids"]
     assert len(paper_ids) == len(set(paper_ids))
+
+
+def test_semantic_search_returns_relevant_papers(
+    client: TestClient,
+    auth_headers: Callable[..., dict[str, str]],
+) -> None:
+    _run_sql(
+        """
+        INSERT INTO papers (
+          id,
+          arxiv_id,
+          version,
+          title,
+          abstract,
+          authors,
+          categories,
+          primary_category,
+          published_at,
+          updated_at,
+          raw_metadata,
+          created_at
+        )
+        SELECT
+          gen_random_uuid(),
+          '2699.' || lpad((series_value + 10000)::text, 5, '0'),
+          1,
+          CASE
+            WHEN series_value = 100 THEN 'Sparse Transformer Attention Mechanisms for Efficient Sequence Models'
+            ELSE 'Background Retrieval Note #' || series_value
+          END,
+          CASE
+            WHEN series_value = 100 THEN 'This paper studies transformer attention mechanisms, efficient sequence modeling, and attention sparsity for long-context inference.'
+            ELSE 'A control paper about unrelated evaluation scaffolding and archive maintenance #' || series_value
+          END,
+          '[]'::jsonb,
+          ARRAY['cs.LG'],
+          'cs.LG',
+          now(),
+          now(),
+          '{}'::jsonb,
+          now()
+        FROM generate_series(1, 100) AS series_value;
+        """
+    )
+
+    asyncio.run(
+        IndexPapersStep(
+            embedding_provider=HashEmbeddingProvider(),
+        ).execute({"force": True})
+    )
+
+    response = client.get(
+        "/papers/search",
+        params={"q": "transformer attention mechanism"},
+        headers=auth_headers(),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["total"] >= 100
+    assert payload["items"]
+    assert "Transformer Attention Mechanisms" in payload["items"][0]["title"]
